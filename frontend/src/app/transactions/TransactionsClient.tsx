@@ -30,11 +30,11 @@ export default function TransactionsClient({ userId }: { userId: string }) {
   }, [userId]);
 
   async function handleDelete(id: string) {
-    setDeletingId(id);
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}`, {
-        method: "DELETE",
-      });
+  setDeletingId(id);
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}?userId=${userId}`, {
+      method: "DELETE",
+    });
       setTransactions((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
     } catch (err) {
       console.error("Failed to delete transaction:", err);
