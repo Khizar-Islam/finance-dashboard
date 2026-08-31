@@ -20,16 +20,16 @@ export default function CategoryPieChart({ data }: { data: CategoryItem[] }) {
   }
 
   return (
-    <div className="flex items-center gap-8 h-full">
-      <div className="w-[220px] h-[220px] flex-shrink-0">
+    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 h-full">
+      <div className="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] flex-shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               dataKey="value"
               nameKey="name"
-              innerRadius={60}
-              outerRadius={95}
+              innerRadius={50}
+              outerRadius={80}
               paddingAngle={2}
               animationDuration={800}
               animationEasing="ease-out"
@@ -42,15 +42,22 @@ export default function CategoryPieChart({ data }: { data: CategoryItem[] }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 w-full sm:w-auto">
         {data.map((entry) => (
-          <div key={entry.name} className="flex items-center gap-2 font-mono text-xs text-ink/80">
-            <span
-              className="w-2.5 h-2.5 rounded-sm inline-block"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span>{entry.name}</span>
-            <span className="text-ink/70 ml-1">Rs {entry.value.toLocaleString()}</span>
+          <div
+            key={entry.name}
+            className="flex items-center justify-between sm:justify-start gap-2 font-mono text-xs text-ink/80"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span>{entry.name}</span>
+            </div>
+            <span className="text-ink/70 whitespace-nowrap">
+              Rs {entry.value.toLocaleString()}
+            </span>
           </div>
         ))}
       </div>
