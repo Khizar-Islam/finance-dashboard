@@ -46,32 +46,22 @@ async function getBudgets(req, res) {
 // POST /api/budgets
 async function upsertBudget(req, res) {
   try {
-    const { userId, categoryId, monthlyLimit, month } = req.body;
-
-    if (!userId || !categoryId || monthlyLimit === undefined || !month) {
-      return res.status(400).json({ error: "userId, categoryId, monthlyLimit, and month are required" });
-    }
-
+    const { userId, categoryId, monthlyLimit, month } = req.validatedBody;
     const monthDate = new Date(`${month}-01T00:00:00.000Z`);
 
     const existing = await prisma.budget.findFirst({
-      where: { userId, categoryId: parseInt(categoryId, 10), month: monthDate },
+      where: { userId, categoryId, month: monthDate },
     });
 
     let budget;
     if (existing) {
       budget = await prisma.budget.update({
         where: { id: existing.id },
-        data: { monthlyLimit: parseFloat(monthlyLimit) },
+        data: { monthlyLimit },
       });
     } else {
       budget = await prisma.budget.create({
-        data: {
-          userId,
-          categoryId: parseInt(categoryId, 10),
-          monthlyLimit: parseFloat(monthlyLimit),
-          month: monthDate,
-        },
+        data: { userId, categoryId, monthlyLimit, month: monthDate },
       });
     }
 

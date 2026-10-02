@@ -6,10 +6,28 @@ const transactionsRoutes = require("./routes/transactions.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const categoriesRoutes = require("./routes/categories.routes");
 const budgetsRoutes = require("./routes/budgets.routes");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
-app.use(cors());
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300,
+  message: { error: "Too many requests, please try again later." },
+});
+
+app.use(generalLimiter);
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://finance-dashboard-khizar9.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+);
 app.use(express.json());
 
 app.use("/api/transactions", transactionsRoutes);
