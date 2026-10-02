@@ -1,8 +1,11 @@
 "use client";
 
+import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Skeleton } from "@/components/Skeleton";
+import { ErrorState } from "@/components/ErrorState";
 
 type BudgetItem = {
   categoryId: number;
@@ -22,16 +25,22 @@ function barColor(spent: number, limit: number | null) {
 
 export default function BudgetsClient({ userId }: { userId: string }) {
   const [budgets, setBudgets] = useState<BudgetItem[] | null>(null);
+  const [error, setError] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState("");
 
   const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
   function loadBudgets() {
+    setError(false);
+    setBudgets(null);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/budgets?month=${month}&userId=${userId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
       .then((data) => setBudgets(data))
-      .catch((err) => console.error("Failed to load budgets:", err));
+      .catch(() => setError(true));
   }
 
   useEffect(() => {
@@ -60,11 +69,17 @@ export default function BudgetsClient({ userId }: { userId: string }) {
   return (
     <main className="relative z-10 min-h-screen px-6 md:px-16 py-10">
       <nav className="flex items-center justify-between mb-10 pb-4 border-b border-ink/10">
-        <span className="font-display text-xl text-ink">Ledger</span>
-        <Link href="/dashboard" className="font-mono text-sm text-ink/60 hover:text-ink transition-colors">
-          Back to dashboard
-        </Link>
-      </nav>
+  <span className="font-display text-xl text-ink">Ledger</span>
+
+  <Link
+    href="/dashboard"
+    className="hidden sm:block font-mono text-sm text-ink/60 hover:text-ink transition-colors"
+  >
+    Back to dashboard
+  </Link>
+
+  <MobileNav links={[{ href: "/dashboard", label: "Back to dashboard" }]} />
+</nav>
 
       <div className="max-w-2xl mx-auto">
         <h1 className="font-display text-3xl text-ink mb-2">Budgets</h1>
@@ -72,8 +87,17 @@ export default function BudgetsClient({ userId }: { userId: string }) {
           Set a monthly limit per category to track how close you are to it.
         </p>
 
-        {!budgets ? (
-          <p className="font-mono text-xs text-ink/50">Loading...</p>
+        {error ? (
+          <ErrorState message="Couldn't load your budgets." onRetry={loadBudgets} />
+        ) : !budgets ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-[#E6DCC5] rounded-xl p-5 space-y-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-2 w-full" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="space-y-4">
             {budgets.map((b, i) => {

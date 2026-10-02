@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Skeleton } from "./Skeleton";
+import { ErrorState } from "./ErrorState";
 
 type Transaction = {
   id: string;
@@ -31,14 +33,24 @@ export default function LedgerTape({
   const [transactions, setTransactions] = useState<Transaction[] | null>(
     userId ? null : SAMPLE_TRANSACTIONS
   );
+  const [error, setError] = useState(false);
   const isDark = variant === "onDark";
 
-  useEffect(() => {
+  function load() {
     if (!userId) return;
+    setError(false);
+    setTransactions(null);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions?limit=5&userId=${userId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
       .then((data) => setTransactions(data))
-      .catch((err) => console.error("Failed to load transactions:", err));
+      .catch(() => setError(true));
+  }
+
+  useEffect(() => {
+    load();
   }, [userId]);
 
   const panelBg = isDark ? "bg-ink" : "bg-parchment";
@@ -46,6 +58,7 @@ export default function LedgerTape({
   const labelColor = isDark ? "text-marigold" : "text-moss";
   const borderColor = isDark ? "border-parchment/20" : "border-ink/20";
   const perfColor = isDark ? "var(--color-parchment)" : "var(--color-ink)";
+  const skeletonColor = isDark ? "bg-parchment/10" : "bg-ink/10";
 
   return (
     <div className={`relative ${panelBg} rounded-sm px-5 py-6`}>
@@ -59,8 +72,14 @@ export default function LedgerTape({
         RECENT ACTIVITY
       </p>
       <div className={`border-t border-dashed ${borderColor} pt-3 space-y-3`}>
-        {!transactions ? (
-          <p className={`font-mono text-xs ${textColor}/50`}>Loading...</p>
+        {error ? (
+          <ErrorState message="Couldn't load recent activity." onRetry={load} />
+        ) : !transactions ? (
+          <>
+            <Skeleton className={`h-4 w-full ${skeletonColor}`} />
+            <Skeleton className={`h-4 w-4/5 ${skeletonColor}`} />
+            <Skeleton className={`h-4 w-3/5 ${skeletonColor}`} />
+          </>
         ) : transactions.length === 0 ? (
           <p className={`font-mono text-xs ${textColor}/50`}>No transactions yet.</p>
         ) : (
