@@ -6,7 +6,11 @@ A personal finance dashboard. Log your spending, set monthly budgets per categor
 
 > The API runs on a free host, so the first load after a quiet period can take up to a minute. Sign-in is Google only.
 
-<!-- Add 2-3 screenshots here (docs/ folder): the dashboard, the budgets page, the add-transaction form -->
+![Dashboard with spending summary, category chart and recent activity](docs/dashboard.png)
+
+![Budgets with progress bars per category](docs/budgets.png)
+
+![Add transaction form](docs/add-transaction.png)
 
 ## What it does
 
