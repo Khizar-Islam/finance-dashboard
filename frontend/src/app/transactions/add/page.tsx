@@ -9,5 +9,5 @@ export default async function AddTransactionPage() {
     redirect("/");
   }
 
-  return <AddTransactionForm userId={session.user.id} />;
+  return <AddTransactionForm />;
 }

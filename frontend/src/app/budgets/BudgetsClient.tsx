@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -23,7 +24,7 @@ function barColor(spent: number, limit: number | null) {
   return "bg-moss";
 }
 
-export default function BudgetsClient({ userId }: { userId: string }) {
+export default function BudgetsClient() {
   const [budgets, setBudgets] = useState<BudgetItem[] | null>(null);
   const [error, setError] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -34,7 +35,7 @@ export default function BudgetsClient({ userId }: { userId: string }) {
   function loadBudgets() {
     setError(false);
     setBudgets(null);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/budgets?month=${month}&userId=${userId}`)
+    apiFetch(`/api/budgets?month=${month}`)
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
@@ -45,16 +46,15 @@ export default function BudgetsClient({ userId }: { userId: string }) {
 
   useEffect(() => {
     loadBudgets();
-  }, [userId]);
+  }, []);
 
   async function saveBudget(categoryId: number) {
     if (!inputValue || parseFloat(inputValue) <= 0) return;
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/budgets`, {
+    await apiFetch("/api/budgets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId,
         categoryId,
         monthlyLimit: parseFloat(inputValue),
         month,

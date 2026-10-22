@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import MobileNav from "@/components/MobileNav";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
@@ -98,7 +99,7 @@ export default function DashboardClient({ userId }: { userId: string }) {
     setSummaryError(false);
     setSummary(null);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/summary?month=${month}&userId=${userId}`)
+    apiFetch(`/api/dashboard/summary?month=${month}`)
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
@@ -113,7 +114,7 @@ export default function DashboardClient({ userId }: { userId: string }) {
     setInsightsError(false);
     setInsights(null);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/insights?month=${month}&userId=${userId}`)
+    apiFetch(`/api/dashboard/insights?month=${month}`)
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import MobileNav from "@/components/MobileNav";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -31,7 +32,7 @@ function monthLabel(monthStr: string) {
   return date.toLocaleString("en-US", { month: "long", year: "numeric" });
 }
 
-export default function TransactionsClient({ userId }: { userId: string }) {
+export default function TransactionsClient() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState(false);
@@ -51,8 +52,8 @@ export default function TransactionsClient({ userId }: { userId: string }) {
   function loadTransactions() {
     setError(false);
     setTransactions(null);
-    const monthParam = showAll ? "" : `&month=${month}`;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions?userId=${userId}${monthParam}`)
+    const monthParam = showAll ? "" : `?month=${month}`;
+    apiFetch(`/api/transactions${monthParam}`)
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
@@ -63,11 +64,11 @@ export default function TransactionsClient({ userId }: { userId: string }) {
 
   useEffect(() => {
     loadTransactions();
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`)
+    apiFetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Failed to load categories:", err));
-  }, [userId, month, showAll]);
+  }, [month, showAll]);
 
   function shiftMonth(delta: number) {
     const [year, m] = month.split("-").map(Number);
@@ -79,7 +80,7 @@ export default function TransactionsClient({ userId }: { userId: string }) {
   async function handleDelete(id: string) {
     setDeletingId(id);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}?userId=${userId}`, {
+      await apiFetch(`/api/transactions/${id}`, {
         method: "DELETE",
       });
       setTransactions((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
@@ -104,11 +105,10 @@ export default function TransactionsClient({ userId }: { userId: string }) {
   async function saveEdit(id: string) {
     setSaving(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}`, {
+      const res = await apiFetch(`/api/transactions/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
           amount: parseFloat(editValues.amount),
           merchant: editValues.merchant || null,
           description: editValues.description || null,

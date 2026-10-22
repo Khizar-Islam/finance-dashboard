@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Skeleton } from "./Skeleton";
@@ -40,7 +41,7 @@ export default function LedgerTape({
     if (!userId) return;
     setError(false);
     setTransactions(null);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions?limit=5&userId=${userId}`)
+    apiFetch("/api/transactions?limit=5")
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();

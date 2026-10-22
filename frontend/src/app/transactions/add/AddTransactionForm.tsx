@@ -1,12 +1,13 @@
 "use client";
 
+import { apiFetch } from "@/lib/api";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Category = { id: number; name: string };
 
-export default function AddTransactionForm({ userId }: { userId: string }) {
+export default function AddTransactionForm() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [amount, setAmount] = useState("");
@@ -19,7 +20,7 @@ export default function AddTransactionForm({ userId }: { userId: string }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`)
+    apiFetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Failed to load categories:", err));
@@ -36,11 +37,10 @@ export default function AddTransactionForm({ userId }: { userId: string }) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/transactions`, {
+      const res = await apiFetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
           amount: parseFloat(amount),
           type,
           merchant: merchant || null,

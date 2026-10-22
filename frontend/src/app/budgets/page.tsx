@@ -9,5 +9,5 @@ export default async function BudgetsPage() {
     redirect("/");
   }
 
-  return <BudgetsClient userId={session.user.id} />;
+  return <BudgetsClient />;
 }
