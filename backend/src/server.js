@@ -7,6 +7,7 @@ const dashboardRoutes = require("./routes/dashboard.routes");
 const categoriesRoutes = require("./routes/categories.routes");
 const budgetsRoutes = require("./routes/budgets.routes");
 const rateLimit = require("express-rate-limit");
+const { requireAuth } = require("./middleware/auth");
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(
 );
 app.use(express.json());
 
+// Every /api route requires a valid token; the user id comes only from it.
+app.use("/api", requireAuth);
+
 app.use("/api/transactions", transactionsRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/categories", categoriesRoutes);
@@ -39,7 +43,11 @@ app.get("/", (req, res) => {
   res.json({ status: "Finance Dashboard API is running" });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

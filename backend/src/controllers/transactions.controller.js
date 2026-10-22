@@ -1,15 +1,11 @@
 const prisma = require("../lib/prisma");
 const { categorizeTransaction } = require("../lib/gemini");
 
-// GET /api/transactions?month=2026-08&categoryId=1&userId=...&limit=5
+// GET /api/transactions?month=2026-08&categoryId=1&limit=5
 async function getTransactions(req, res) {
   try {
-    const { month, categoryId, userId, limit } = req.query;
-    const where = {};
-
-    if (userId) {
-      where.userId = userId;
-    }
+    const { month, categoryId, limit } = req.query;
+    const where = { userId: req.userId };
 
     if (month) {
       const start = new Date(`${month}-01T00:00:00.000Z`);
@@ -39,7 +35,8 @@ async function getTransactions(req, res) {
 // POST /api/transactions
 async function createTransaction(req, res) {
   try {
-    const { userId, amount, type, description, merchant, transactionDate, categoryId, source } = req.validatedBody;
+    const userId = req.userId;
+    const { amount, type, description, merchant, transactionDate, categoryId, source } = req.validatedBody;
 
     let finalCategoryId = categoryId ?? null;
 
@@ -73,16 +70,11 @@ async function createTransaction(req, res) {
 async function updateTransaction(req, res) {
   try {
     const { id } = req.params;
-    const { userId, amount, description, merchant, transactionDate, categoryId } = req.validatedBody;
+    const { amount, description, merchant, transactionDate, categoryId } = req.validatedBody;
 
-    const existing = await prisma.transaction.findUnique({ where: { id } });
-
-    if (!existing || existing.userId !== userId) {
-      return res.status(404).json({ error: "Transaction not found" });
-    }
-
-    const transaction = await prisma.transaction.update({
-      where: { id },
+    // Scoping the write by userId means another user's transaction matches nothing.
+    const { count } = await prisma.transaction.updateMany({
+      where: { id, userId: req.userId },
       data: {
         ...(amount !== undefined && { amount }),
         ...(description !== undefined && { description }),
@@ -92,6 +84,11 @@ async function updateTransaction(req, res) {
       },
     });
 
+    if (count === 0) {
+      return res.status(404).json({ error: "Transaction not found" });
+    }
+
+    const transaction = await prisma.transaction.findFirst({ where: { id, userId: req.userId } });
     res.json(transaction);
   } catch (err) {
     console.error(err);
@@ -99,23 +96,19 @@ async function updateTransaction(req, res) {
   }
 }
 
-// DELETE /api/transactions/:id?userId=...
+// DELETE /api/transactions/:id
 async function deleteTransaction(req, res) {
   try {
     const { id } = req.params;
-    const { userId } = req.query;
 
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
+    const { count } = await prisma.transaction.deleteMany({
+      where: { id, userId: req.userId },
+    });
 
-    const existing = await prisma.transaction.findUnique({ where: { id } });
-
-    if (!existing || existing.userId !== userId) {
+    if (count === 0) {
       return res.status(404).json({ error: "Transaction not found" });
     }
 
-    await prisma.transaction.delete({ where: { id } });
     res.status(204).send();
   } catch (err) {
     console.error(err);

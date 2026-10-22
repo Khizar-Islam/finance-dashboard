@@ -3,7 +3,8 @@ const { generateInsights } = require("../lib/gemini");
 
 async function getSummary(req, res) {
   try {
-    const { month, userId } = req.query;
+    const { month } = req.query;
+    const userId = req.userId;
     const targetMonth = month ? new Date(`${month}-01T00:00:00.000Z`) : new Date();
 
     const monthStart = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
@@ -74,7 +75,8 @@ async function getSummary(req, res) {
 
 async function getInsights(req, res) {
   try {
-    const { month, userId } = req.query;
+    const { month } = req.query;
+    const userId = req.userId;
     const targetMonth = month ? new Date(`${month}-01T00:00:00.000Z`) : new Date();
 
     const monthStart = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);

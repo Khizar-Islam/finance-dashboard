@@ -1,9 +1,10 @@
 const prisma = require("../lib/prisma");
 
-// GET /api/budgets?month=2026-08&userId=...
+// GET /api/budgets?month=2026-08
 async function getBudgets(req, res) {
   try {
-    const { month, userId } = req.query;
+    const { month } = req.query;
+    const userId = req.userId;
     const monthStr = month || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
     const monthStart = new Date(`${monthStr}-01T00:00:00.000Z`);
     const monthEnd = new Date(monthStart);
@@ -46,7 +47,8 @@ async function getBudgets(req, res) {
 // POST /api/budgets
 async function upsertBudget(req, res) {
   try {
-    const { userId, categoryId, monthlyLimit, month } = req.validatedBody;
+    const userId = req.userId;
+    const { categoryId, monthlyLimit, month } = req.validatedBody;
     const monthDate = new Date(`${month}-01T00:00:00.000Z`);
 
     const existing = await prisma.budget.findFirst({

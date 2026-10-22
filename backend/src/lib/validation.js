@@ -1,7 +1,6 @@
 const { z } = require("zod");
 
 const createTransactionSchema = z.object({
-  userId: z.string().min(1, "userId is required"),
   amount: z.coerce.number().positive("amount must be a positive number"),
   type: z.enum(["income", "expense"]).default("expense"),
   description: z.string().max(500).nullable().optional(),
@@ -12,7 +11,6 @@ const createTransactionSchema = z.object({
 });
 
 const updateTransactionSchema = z.object({
-  userId: z.string().min(1, "userId is required"),
   amount: z.coerce.number().positive().optional(),
   description: z.string().max(500).nullable().optional(),
   merchant: z.string().max(200).nullable().optional(),
@@ -21,7 +19,6 @@ const updateTransactionSchema = z.object({
 });
 
 const upsertBudgetSchema = z.object({
-  userId: z.string().min(1, "userId is required"),
   categoryId: z.coerce.number().int(),
   monthlyLimit: z.coerce.number().positive("monthlyLimit must be a positive number"),
   month: z.string().regex(/^\d{4}-\d{2}$/, "month must be in YYYY-MM format"),
