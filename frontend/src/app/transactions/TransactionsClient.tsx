@@ -3,7 +3,7 @@
 import { apiFetch } from "@/lib/api";
 import MobileNav from "@/components/MobileNav";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/Skeleton";
 import { ErrorState } from "@/components/ErrorState";
@@ -36,7 +36,10 @@ export default function TransactionsClient() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Updated synchronously, so a fast second click on the same row is ignored.
+  const deletingRef = useRef<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [month, setMonth] = useState(currentMonth());
   const [showAll, setShowAll] = useState(false);
@@ -75,19 +78,33 @@ export default function TransactionsClient() {
     const date = new Date(year, m - 1 + delta, 1);
     setMonth(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`);
     setShowAll(false);
+    setDeleteError(null);
   }
 
   async function handleDelete(id: string) {
-    setDeletingId(id);
+    if (deletingRef.current.has(id)) return;
+    deletingRef.current.add(id);
+    setDeletingIds(new Set(deletingRef.current));
+    setDeleteError(null);
+
     try {
-      await apiFetch(`/api/transactions/${id}`, {
+      const res = await apiFetch(`/api/transactions/${id}`, {
         method: "DELETE",
       });
-      setTransactions((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
+      // A 404 means it's already gone on the server, so drop it here too.
+      if (res.ok || res.status === 404) {
+        setTransactions((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
+      } else if (res.status === 429) {
+        setDeleteError("You're deleting too quickly. Wait a minute and try again.");
+      } else {
+        setDeleteError("Couldn't delete that transaction. Please try again.");
+      }
     } catch (err) {
       console.error("Failed to delete transaction:", err);
+      setDeleteError("Couldn't delete that transaction. Please try again.");
     } finally {
-      setDeletingId(null);
+      deletingRef.current.delete(id);
+      setDeletingIds(new Set(deletingRef.current));
     }
   }
 
@@ -180,6 +197,12 @@ export default function TransactionsClient() {
             </button>
           </div>
         </div>
+
+        {deleteError && (
+          <p role="alert" className="font-mono text-xs text-brick mb-4">
+            {deleteError}
+          </p>
+        )}
 
         {error ? (
           <ErrorState message="Couldn't load your transactions." onRetry={loadTransactions} />
@@ -319,10 +342,10 @@ export default function TransactionsClient() {
                         </button>
                         <button
                           onClick={() => handleDelete(tx.id)}
-                          disabled={deletingId === tx.id}
+                          disabled={deletingIds.has(tx.id)}
                           className="font-mono text-xs text-ink/40 hover:text-brick transition-colors disabled:opacity-50"
                         >
-                          {deletingId === tx.id ? "..." : "Delete"}
+                          {deletingIds.has(tx.id) ? "..." : "Delete"}
                         </button>
                       </div>
                     </div>
