@@ -29,6 +29,7 @@ export default function BudgetsClient() {
   const [error, setError] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
@@ -51,16 +52,24 @@ export default function BudgetsClient() {
   async function saveBudget(categoryId: number) {
     if (!inputValue || parseFloat(inputValue) <= 0) return;
 
-    await apiFetch("/api/budgets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        categoryId,
-        monthlyLimit: parseFloat(inputValue),
-        month,
-      }),
-    });
+    try {
+      const res = await apiFetch("/api/budgets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoryId,
+          monthlyLimit: parseFloat(inputValue),
+          month,
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch (err) {
+      console.error("Failed to save budget:", err);
+      setSaveError("Couldn't save that limit. Please try again.");
+      return;
+    }
 
+    setSaveError(null);
     setEditingId(null);
     setInputValue("");
     loadBudgets();
@@ -86,6 +95,12 @@ export default function BudgetsClient() {
         <p className="font-mono text-xs text-moss mb-8">
           Set a monthly limit per category to track how close you are to it.
         </p>
+
+        {saveError && (
+          <p role="alert" className="font-mono text-xs text-brick mb-4">
+            {saveError}
+          </p>
+        )}
 
         {error ? (
           <ErrorState message="Couldn't load your budgets." onRetry={loadBudgets} />

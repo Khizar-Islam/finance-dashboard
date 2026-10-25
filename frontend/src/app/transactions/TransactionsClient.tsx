@@ -38,6 +38,7 @@ export default function TransactionsClient() {
   const [error, setError] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [categoriesError, setCategoriesError] = useState(false);
   // Updated synchronously, so a fast second click on the same row is ignored.
   const deletingRef = useRef<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,9 +69,19 @@ export default function TransactionsClient() {
   useEffect(() => {
     loadTransactions();
     apiFetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) => console.error("Failed to load categories:", err));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) throw new Error();
+        setCategories(data);
+        setCategoriesError(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load categories:", err);
+        setCategoriesError(true);
+      });
   }, [month, showAll]);
 
   function shiftMonth(delta: number) {
@@ -201,6 +212,12 @@ export default function TransactionsClient() {
         {deleteError && (
           <p role="alert" className="font-mono text-xs text-brick mb-4">
             {deleteError}
+          </p>
+        )}
+
+        {categoriesError && (
+          <p role="alert" className="font-mono text-xs text-brick mb-4">
+            Could not load categories. Reload the page to try again.
           </p>
         )}
 

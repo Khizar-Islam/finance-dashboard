@@ -21,9 +21,18 @@ export default function AddTransactionForm() {
 
   useEffect(() => {
     apiFetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) => console.error("Failed to load categories:", err));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) throw new Error();
+        setCategories(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load categories:", err);
+        setError("Couldn't load categories. You can still save with Auto-categorize.");
+      });
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
