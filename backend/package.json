@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:auth": "node scripts/auth-test.js"
+    "test:auth": "node scripts/auth-test.js",
+    "test:errors": "node scripts/error-handler-test.js"
   },
   "keywords": [],
   "author": "",

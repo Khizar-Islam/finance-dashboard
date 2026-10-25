@@ -8,6 +8,7 @@ const categoriesRoutes = require("./routes/categories.routes");
 const budgetsRoutes = require("./routes/budgets.routes");
 const rateLimit = require("express-rate-limit");
 const { requireAuth } = require("./middleware/auth");
+const { apiNotFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -29,7 +30,7 @@ app.use(
     origin: allowedOrigins,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 
 // Every /api route requires a valid token; the user id comes only from it.
 app.use("/api", requireAuth);
@@ -42,6 +43,10 @@ app.use("/api/budgets", budgetsRoutes);
 app.get("/", (req, res) => {
   res.json({ status: "Finance Dashboard API is running" });
 });
+
+// Must come after every router.
+app.use("/api", apiNotFound);
+app.use(errorHandler);
 
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
