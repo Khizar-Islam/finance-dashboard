@@ -54,6 +54,14 @@ frontend/   Next.js app: dashboard, transactions, budgets, sign-in
 3. In `frontend/`, create `.env.local` with `DATABASE_URL`, `DIRECT_URL`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_SECRET` and `NEXT_PUBLIC_API_URL`. Then run `npm install`, `npx prisma db push`, `npx prisma generate` and `npm run dev`.
 4. Open http://localhost:3000.
 
+## Deployment settings
+
+The API on Render needs these environment variables (names are listed in `backend/.env.example`):
+
+- `DATABASE_URL`, `GEMINI_API_KEY` and `API_AUTH_SECRET` (same value as the frontend).
+- `TRUST_PROXY_HOPS=3`, so rate limits count each visitor separately behind Cloudflare and Render's proxy.
+- `CORS_ORIGINS` (optional), extra comma-separated sites allowed to call the API.
+
 ## Known limits
 
 - Amounts are in Rs and there is no currency setting.

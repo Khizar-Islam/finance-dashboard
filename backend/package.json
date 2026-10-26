@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:auth": "node scripts/auth-test.js",
     "test:errors": "node scripts/error-handler-test.js",
-    "test:cors": "node scripts/cors-test.js"
+    "test:cors": "node scripts/cors-test.js",
+    "test:proxy": "node scripts/trust-proxy-test.js"
   },
   "keywords": [],
   "author": "",

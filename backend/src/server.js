@@ -10,8 +10,14 @@ const rateLimit = require("express-rate-limit");
 const { requireAuth } = require("./middleware/auth");
 const { apiNotFound, errorHandler } = require("./middleware/errorHandler");
 const { buildAllowedOrigins } = require("./lib/corsOrigins");
+const { parseTrustProxyHops } = require("./lib/trustProxy");
 
 const app = express();
+
+// req.ip (used by the rate limiters) is the real visitor only when Express
+// trusts the proxies in front of it. Must be set before any limiter runs.
+const trustProxyHops = parseTrustProxyHops(process.env.TRUST_PROXY_HOPS);
+if (trustProxyHops > 0) app.set("trust proxy", trustProxyHops);
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -50,6 +56,10 @@ app.use(errorHandler);
 
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
+  console.log(`Trust proxy hops: ${trustProxyHops}${trustProxyHops === 0 ? " (off)" : ""}`);
+  if (process.env.RENDER === "true" && trustProxyHops === 0) {
+    console.warn("Warning: running on Render with trust proxy off; set TRUST_PROXY_HOPS=3 or all visitors share one rate-limit counter.");
+  }
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
