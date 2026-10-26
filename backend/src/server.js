@@ -9,6 +9,7 @@ const budgetsRoutes = require("./routes/budgets.routes");
 const rateLimit = require("express-rate-limit");
 const { requireAuth } = require("./middleware/auth");
 const { apiNotFound, errorHandler } = require("./middleware/errorHandler");
+const { buildAllowedOrigins } = require("./lib/corsOrigins");
 
 const app = express();
 
@@ -20,10 +21,9 @@ const generalLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://finance-dashboard-khizar9.vercel.app",
-];
+// The frontend runs on a different domain, so the API must name the sites
+// allowed to call it. CORS_ORIGINS (comma-separated) can add more.
+const allowedOrigins = buildAllowedOrigins(process.env.CORS_ORIGINS);
 
 app.use(
   cors({

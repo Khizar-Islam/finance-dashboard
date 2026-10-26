@@ -2,7 +2,7 @@
 
 A personal finance dashboard. Log your spending, set monthly budgets per category, and get short AI-written notes about where your money went.
 
-**Live demo:** https://finance-dashboard-khizar9.vercel.app
+**Live demo:** https://finance-dashboard-mocha-tau.vercel.app
 
 > The API runs on a free host, so the first load after a quiet period can take up to a minute. Sign-in is Google only.
 
