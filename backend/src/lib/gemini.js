@@ -2,6 +2,11 @@ const { GoogleGenAI } = require("@google/genai");
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Used for both categorization and insights. GEMINI_MODEL overrides it, so a
+// retired model can be swapped without a code change.
+const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
+const GEMINI_MODEL = (process.env.GEMINI_MODEL || "").trim() || DEFAULT_GEMINI_MODEL;
+
 const VALID_CATEGORIES = ["Food", "Transport", "Bills", "Shopping", "Entertainment", "Health", "Other"];
 
 async function categorizeTransaction({ merchant, description, amount }) {
@@ -11,7 +16,7 @@ Respond with only the category name, nothing else.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: GEMINI_MODEL,
       contents: prompt,
     });
 
@@ -38,7 +43,7 @@ Respond ONLY with a JSON array in this exact format, no markdown, no extra text:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: GEMINI_MODEL,
       contents: prompt,
     });
 
@@ -53,7 +58,7 @@ Respond ONLY with a JSON array in this exact format, no markdown, no extra text:
     return [];
   }
 }
-module.exports = { categorizeTransaction, generateInsights, VALID_CATEGORIES };
+module.exports = { categorizeTransaction, generateInsights, VALID_CATEGORIES, DEFAULT_GEMINI_MODEL, GEMINI_MODEL };
 
 
 

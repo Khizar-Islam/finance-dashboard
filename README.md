@@ -61,6 +61,7 @@ The API on Render needs these environment variables (names are listed in `backen
 - `DATABASE_URL`, `GEMINI_API_KEY` and `API_AUTH_SECRET` (same value as the frontend).
 - `TRUST_PROXY_HOPS=3`, so rate limits count each visitor separately behind Cloudflare and Render's proxy.
 - `CORS_ORIGINS` (optional), extra comma-separated sites allowed to call the API.
+- `GEMINI_MODEL` (optional), the Gemini model used for categorization and insights; defaults to `gemini-3.8-flash`.
 
 ## Known limits
 
